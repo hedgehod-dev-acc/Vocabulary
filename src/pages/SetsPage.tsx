@@ -58,11 +58,11 @@ export default function SetsPage() {
           </button>
         }
       />
-      <main className="px-4 pt-3">
+      <main className="px-4 pt-4">
         {sets.length === 0 ? (
           <EmptyState
-            icon={<FolderSimple size={40} weight="duotone" className="text-indigo-500" />}
-            title="No sets"
+            icon={<FolderSimple size={32} weight="duotone" className="text-accent" />}
+            title="No sets yet"
             description="Create a set to group your words."
             action={
               <button
@@ -75,31 +75,38 @@ export default function SetsPage() {
             }
           />
         ) : (
-          <ul className="space-y-2">
-            {sorted.map((s) => {
+          <ul className="space-y-2.5">
+            {sorted.map((s, i) => {
               const count = counts[s.id] ?? 0;
               return (
-                <li key={s.id} className="animate-list-in">
-                  <div className="flex items-center gap-1 bg-white rounded-2xl ring-1 ring-neutral-200/70 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <li
+                  key={s.id}
+                  className="animate-list-in"
+                  style={{ animationDelay: `${Math.min(i, 12) * 35}ms` }}
+                >
+                  <div className="group flex items-center gap-1 bg-surface rounded-2xl ring-1 ring-hairline shadow-[var(--shadow-card)] hover:ring-hairline-strong hover:shadow-[var(--shadow-lift)] transition-shadow duration-300">
                     <Link
                       to={routes.setDetail(s.id)}
-                      className="flex-1 min-w-0 flex items-center gap-3 pl-4 pr-1 py-3 active:bg-neutral-50 rounded-2xl"
+                      className="press flex-1 min-w-0 flex items-center gap-3 pl-3.5 pr-1 py-3 rounded-2xl focus-ring"
                     >
-                      <div className="h-9 w-9 grid place-items-center rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
+                      <div className="relative h-10 w-10 grid place-items-center rounded-xl bg-accent-tint text-accent-deep shrink-0 transition-transform duration-300 ease-[var(--ease-spring)] group-hover:scale-105 group-hover:rotate-[-3deg]">
                         <FolderSimple size={20} weight="fill" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[16px] font-semibold text-neutral-900 truncate">
+                        <p
+                          className="font-display text-[18px] font-semibold text-ink truncate"
+                          style={{ letterSpacing: "-0.01em" }}
+                        >
                           {s.name}
                         </p>
-                        <p className="text-[12px] text-neutral-500 tabular-nums">
+                        <p className="text-[12px] text-ink-muted tabular">
                           {count} word{count === 1 ? "" : "s"}
                         </p>
                       </div>
                       <CaretRight
                         size={16}
                         weight="bold"
-                        className="text-neutral-300 shrink-0"
+                        className="text-ink-faint shrink-0 transition-transform duration-300 ease-[var(--ease-spring)] group-hover:translate-x-1 group-hover:text-accent"
                       />
                     </Link>
                     <div className="flex items-center gap-0.5 pr-2">
@@ -107,7 +114,7 @@ export default function SetsPage() {
                         type="button"
                         aria-label={`Rename ${s.name}`}
                         onClick={() => setRenaming(s)}
-                        className="h-9 w-9 grid place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 active:bg-neutral-200"
+                        className="press h-9 w-9 grid place-items-center rounded-lg text-ink-muted hover:bg-paper-deep focus-ring"
                       >
                         <PencilSimple size={16} weight="regular" />
                       </button>
@@ -116,7 +123,7 @@ export default function SetsPage() {
                         aria-label={`Delete ${s.name}`}
                         onClick={() => handleDelete(s)}
                         disabled={sets.length <= 1}
-                        className="h-9 w-9 grid place-items-center rounded-lg text-rose-600 hover:bg-rose-50 active:bg-rose-100 disabled:opacity-30 disabled:hover:bg-transparent"
+                        className="press h-9 w-9 grid place-items-center rounded-lg text-danger hover:bg-danger-soft disabled:opacity-30 disabled:hover:bg-transparent focus-ring"
                       >
                         <Trash size={16} weight="regular" />
                       </button>

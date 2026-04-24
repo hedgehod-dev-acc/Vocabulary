@@ -67,14 +67,14 @@ export default function SetDetailPage() {
               aria-label="Delete set"
               onClick={() => handleDelete(set)}
               disabled={sets.length <= 1}
-              className={`${iconBtn} text-rose-600 hover:bg-rose-50 active:bg-rose-100 disabled:opacity-30`}
+              className={`${iconBtn} text-danger hover:bg-danger-soft disabled:opacity-30`}
             >
               <Trash size={18} weight="regular" />
             </button>
           </>
         }
       />
-      <main className="px-4 pt-3 space-y-3">
+      <main className="px-4 pt-4 space-y-3.5">
         {setWords.length > 0 && (
           <SearchInput
             value={query}

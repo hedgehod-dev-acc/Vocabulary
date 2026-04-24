@@ -61,16 +61,13 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
     if (successTimerRef.current) window.clearTimeout(successTimerRef.current);
     successTimerRef.current = window.setTimeout(
       () => setJustAdded(false),
-      1600
+      1800
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <label className="block">
-        <span className="block text-[13px] font-medium text-neutral-600 mb-1 ml-1">
-          Set
-        </span>
+    <form onSubmit={handleSubmit} className="space-y-3.5">
+      <Field label="Set" delay={0}>
         <select
           value={setId}
           onChange={(e) => setSetId(e.target.value)}
@@ -82,12 +79,9 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
             </option>
           ))}
         </select>
-      </label>
+      </Field>
 
-      <div>
-        <label className="block text-[13px] font-medium text-neutral-600 mb-1 ml-1">
-          Word
-        </label>
+      <Field label="Word" delay={60}>
         <input
           ref={wordInputRef}
           value={word}
@@ -99,12 +93,9 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
           autoCapitalize="none"
           maxLength={120}
         />
-      </div>
+      </Field>
 
-      <div>
-        <label className="block text-[13px] font-medium text-neutral-600 mb-1 ml-1">
-          Translation
-        </label>
+      <Field label="Translation" delay={120}>
         <input
           value={translation}
           onChange={(e) => setTranslation(e.target.value)}
@@ -115,13 +106,13 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
           autoCapitalize="none"
           maxLength={120}
         />
-      </div>
+      </Field>
 
-      <div>
-        <label className="block text-[13px] font-medium text-neutral-600 mb-1 ml-1">
-          Explanation{" "}
-          <span className="text-neutral-400 font-normal">(optional)</span>
-        </label>
+      <Field
+        label="Explanation"
+        hint="optional"
+        delay={180}
+      >
         <textarea
           value={explanation}
           onChange={(e) => setExplanation(e.target.value)}
@@ -130,16 +121,21 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
           rows={3}
           maxLength={500}
         />
-      </div>
+      </Field>
 
-      <div className="flex items-center gap-2 pt-1">
+      <div className="flex items-center gap-2 pt-2 animate-fade-in" style={{ animationDelay: "240ms" }}>
         <div
-          className={`text-[13px] font-medium flex items-center gap-1 transition-opacity ${
-            justAdded ? "opacity-100 text-emerald-600" : "opacity-0"
+          className={`text-[13px] font-medium flex items-center gap-1.5 transition-all duration-300 ${
+            justAdded
+              ? "opacity-100 translate-x-0 text-success"
+              : "opacity-0 -translate-x-1"
           }`}
           aria-live="polite"
         >
-          <Check size={14} weight="bold" /> Added
+          <span className="grid place-items-center h-5 w-5 rounded-full bg-success/15 animate-pop-in">
+            <Check size={12} weight="bold" />
+          </span>
+          Added
         </div>
         <div className="flex-1" />
         <button type="submit" disabled={!canSubmit} className={btnPrimary}>
@@ -147,5 +143,31 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
         </button>
       </div>
     </form>
+  );
+}
+
+function Field({
+  label,
+  hint,
+  delay = 0,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  delay?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block animate-rise" style={{ animationDelay: `${delay}ms` }}>
+      <span className="block text-[11px] uppercase tracking-[0.14em] font-semibold text-ink-muted mb-1.5 ml-0.5">
+        {label}
+        {hint && (
+          <span className="ml-1.5 normal-case tracking-normal text-ink-faint font-normal">
+            {hint}
+          </span>
+        )}
+      </span>
+      {children}
+    </label>
   );
 }

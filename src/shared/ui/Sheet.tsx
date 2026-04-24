@@ -32,28 +32,36 @@ export default function Sheet({ open, title, onClose, children, rightAction }: P
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-black/35 animate-fade-in"
+        className="absolute inset-0 bg-ink/45 backdrop-blur-sm animate-backdrop-in"
       />
       <div
-        className="absolute left-0 right-0 bottom-0 bg-white rounded-t-3xl shadow-xl max-h-[88dvh] flex flex-col animate-sheet-in"
+        className="absolute left-0 right-0 bottom-0 bg-surface rounded-t-[28px] shadow-[var(--shadow-pop)] max-h-[88dvh] flex flex-col animate-sheet-in"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="flex justify-center pt-2.5 pb-1">
-          <div className="h-1 w-10 rounded-full bg-neutral-300" aria-hidden="true" />
+        <div className="flex justify-center pt-3 pb-1.5">
+          <div
+            className="h-1 w-10 rounded-full bg-hairline-strong"
+            aria-hidden="true"
+          />
         </div>
-        <div className="flex items-center gap-2 px-4 pb-3">
-          <h2 className="flex-1 text-[18px] font-semibold text-neutral-900">{title}</h2>
+        <div className="flex items-center gap-2 px-5 pt-1 pb-3">
+          <h2
+            className="flex-1 font-display text-[22px] font-semibold text-ink"
+            style={{ letterSpacing: "-0.015em" }}
+          >
+            {title}
+          </h2>
           {rightAction ?? (
             <button
               onClick={onClose}
               aria-label="Close"
-              className="h-9 w-9 grid place-items-center rounded-xl text-neutral-500 hover:bg-neutral-100 active:bg-neutral-200"
+              className="press h-9 w-9 grid place-items-center rounded-xl text-ink-muted hover:bg-paper-deep focus-ring"
             >
               <X size={18} weight="bold" />
             </button>
           )}
         </div>
-        <div className="px-4 pb-4 overflow-y-auto">{children}</div>
+        <div className="px-5 pb-5 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -15,11 +15,12 @@ export default function WordList({ words, showSetChip = false }: Props) {
 
   return (
     <>
-      <ul className="space-y-2">
-        {words.map((w) => (
+      <ul className="space-y-2.5">
+        {words.map((w, i) => (
           <WordCard
             key={w.id}
             word={w}
+            index={i}
             setName={showSetChip ? getSetName(w.setId) : undefined}
             onClick={() => setEditing(w)}
           />

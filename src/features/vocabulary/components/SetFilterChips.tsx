@@ -20,8 +20,8 @@ export default function SetFilterChips({
 }: Props) {
   const sorted = sets.slice().sort((a, b) => a.createdAt - b.createdAt);
   return (
-    <div className="-mx-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="flex gap-2 px-1 py-1 w-max">
+    <div className="-mx-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-2 px-4 py-1 w-max">
         <Chip
           label="All"
           count={totalCount}
@@ -57,16 +57,16 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`h-9 px-3 rounded-full inline-flex items-center gap-1.5 text-[13px] font-medium transition whitespace-nowrap ${
+      className={`press h-9 px-3.5 rounded-full inline-flex items-center gap-1.5 text-[13px] font-medium whitespace-nowrap focus-ring transition-[background-color,color,box-shadow,transform] duration-300 ease-[var(--ease-spring)] ${
         active
-          ? "bg-indigo-600 text-white shadow-sm"
-          : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-50"
+          ? "bg-ink text-paper shadow-[0_8px_22px_-10px_rgba(26,23,20,0.55)] scale-[1.03]"
+          : "bg-surface text-ink-soft ring-1 ring-hairline hover:ring-hairline-strong hover:bg-paper-deep"
       }`}
     >
       <span className="truncate max-w-[160px]">{label}</span>
       <span
-        className={`text-[11px] font-semibold tabular-nums px-1.5 rounded-md ${
-          active ? "bg-white/20" : "bg-neutral-100 text-neutral-600"
+        className={`text-[11px] font-semibold tabular px-1.5 rounded-md transition-colors ${
+          active ? "bg-paper/20 text-paper" : "bg-paper-deep text-ink-muted"
         }`}
       >
         {count}

@@ -12,8 +12,8 @@ export default function AddPage() {
 
   return (
     <>
-      <ScreenHeader title="Add a word" />
-      <main className="px-4 pt-4">
+      <ScreenHeader title="Add a word" subtitle="Capture · translate · learn" />
+      <main className="px-4 pt-5 pb-4">
         <AddWordForm defaultSetId={defaultSetId} />
       </main>
     </>

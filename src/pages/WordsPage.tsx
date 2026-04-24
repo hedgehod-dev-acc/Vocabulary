@@ -32,8 +32,11 @@ export default function WordsPage() {
 
   return (
     <>
-      <ScreenHeader title="Words" subtitle={`${words.length} total`} />
-      <main className="px-4 pt-3 space-y-3">
+      <ScreenHeader
+        title="Words"
+        subtitle={`${words.length} ${words.length === 1 ? "entry" : "entries"} in your library`}
+      />
+      <main className="px-4 pt-4 space-y-3.5">
         {hasAny && <SearchInput value={query} onChange={setQuery} placeholder="Search in either language" />}
         {hasAny && (
           <SetFilterChips
@@ -47,7 +50,7 @@ export default function WordsPage() {
 
         {!hasAny ? (
           <EmptyState
-            icon={<BookOpen size={40} weight="duotone" className="text-indigo-500" />}
+            icon={<BookOpen size={32} weight="duotone" className="text-accent" />}
             title="No words yet"
             description="Head to the Add tab to save your first word."
           />
