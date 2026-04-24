@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "@phosphor-icons/react";
 
 interface Props {
@@ -26,7 +27,7 @@ export default function Sheet({ open, title, onClose, children, rightAction }: P
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-40">
       <button
         type="button"
@@ -63,6 +64,7 @@ export default function Sheet({ open, title, onClose, children, rightAction }: P
         </div>
         <div className="px-5 pb-5 overflow-y-auto">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
