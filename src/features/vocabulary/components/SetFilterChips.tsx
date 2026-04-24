@@ -59,14 +59,14 @@ function Chip({
       onClick={onClick}
       className={`press h-9 px-3.5 rounded-full inline-flex items-center gap-1.5 text-[13px] font-medium whitespace-nowrap focus-ring transition-[background-color,color,box-shadow,transform] duration-300 ease-[var(--ease-spring)] ${
         active
-          ? "bg-ink text-paper shadow-[0_8px_22px_-10px_rgba(26,23,20,0.55)] scale-[1.03]"
+          ? "bg-ink text-white shadow-[0_8px_22px_-10px_rgba(26,23,20,0.55)] scale-[1.03]"
           : "bg-surface text-ink-soft ring-1 ring-hairline hover:ring-hairline-strong hover:bg-paper-deep"
       }`}
     >
       <span className="truncate max-w-[160px]">{label}</span>
       <span
         className={`text-[11px] font-semibold tabular px-1.5 rounded-md transition-colors ${
-          active ? "bg-paper/20 text-paper" : "bg-paper-deep text-ink-muted"
+          active ? "bg-white/20 text-white" : "bg-paper-deep text-ink-muted"
         }`}
       >
         {count}
