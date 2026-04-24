@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { PencilSimple, Plus, Trash } from "@phosphor-icons/react";
+import {
+  DownloadSimple,
+  PencilSimple,
+  Plus,
+  Trash,
+} from "@phosphor-icons/react";
 import ScreenHeader from "../shared/ui/ScreenHeader";
 import SearchInput from "../shared/ui/SearchInput";
 import EmptyState from "../shared/ui/EmptyState";
@@ -8,13 +13,16 @@ import WordList from "../features/vocabulary/components/WordList";
 import RenameSetSheet from "../features/vocabulary/components/RenameSetSheet";
 import { useVocabulary } from "../features/vocabulary/VocabularyContext";
 import { useFilteredWords } from "../features/vocabulary/useFilteredWords";
+import { downloadJsonExport } from "../features/vocabulary/download";
+import { slugify } from "../features/vocabulary/serialize";
 import { routes } from "../app/routes";
 import { btnPrimary, iconBtn } from "../shared/ui/fields";
 import type { WordSet } from "../features/vocabulary/types";
 
 export default function SetDetailPage() {
   const { setId = "" } = useParams<{ setId: string }>();
-  const { getSet, sets, words, wordsInSet, deleteSet } = useVocabulary();
+  const { getSet, sets, words, wordsInSet, deleteSet, exportSet } =
+    useVocabulary();
   const [query, setQuery] = useState("");
   const [renaming, setRenaming] = useState<WordSet | null>(null);
 
@@ -29,6 +37,12 @@ export default function SetDetailPage() {
 
   if (!set) {
     return <Navigate to={routes.sets} replace />;
+  }
+
+  function handleExport(target: WordSet) {
+    const payload = exportSet(target.id);
+    if (!payload) return;
+    downloadJsonExport(payload, `vocabulary-${slugify(target.name)}`);
   }
 
   function handleDelete(target: WordSet) {
@@ -54,6 +68,14 @@ export default function SetDetailPage() {
         back={routes.sets}
         right={
           <>
+            <button
+              type="button"
+              aria-label="Export set"
+              onClick={() => handleExport(set)}
+              className={iconBtn}
+            >
+              <DownloadSimple size={18} weight="regular" />
+            </button>
             <button
               type="button"
               aria-label="Rename set"

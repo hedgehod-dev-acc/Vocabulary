@@ -13,6 +13,11 @@ import {
   saveState,
   type PersistedState,
 } from "./storage";
+import {
+  buildExport,
+  buildExportForSet,
+  type ExportPayload,
+} from "./serialize";
 import { createId } from "../../shared/lib/id";
 
 type Action =
@@ -21,7 +26,8 @@ type Action =
   | { type: "DELETE_WORD"; id: string }
   | { type: "ADD_SET"; payload: WordSet }
   | { type: "RENAME_SET"; id: string; name: string }
-  | { type: "DELETE_SET"; id: string };
+  | { type: "DELETE_SET"; id: string }
+  | { type: "IMPORT_BUNDLE"; sets: WordSet[]; words: Word[] };
 
 function reducer(state: PersistedState, action: Action): PersistedState {
   switch (action.type) {
@@ -50,9 +56,19 @@ function reducer(state: PersistedState, action: Action): PersistedState {
         sets: state.sets.filter((s) => s.id !== action.id),
         words: state.words.filter((w) => w.setId !== action.id),
       };
+    case "IMPORT_BUNDLE":
+      return {
+        sets: [...state.sets, ...action.sets],
+        words: [...action.words, ...state.words],
+      };
     default:
       return state;
   }
+}
+
+export interface ImportSummary {
+  setCount: number;
+  wordCount: number;
 }
 
 export interface VocabularyContextValue {
@@ -67,6 +83,9 @@ export interface VocabularyContextValue {
   getSet: (id: string) => WordSet | undefined;
   getSetName: (id: string) => string;
   wordsInSet: (id: string) => Word[];
+  exportBundle: () => ExportPayload;
+  exportSet: (id: string) => ExportPayload | null;
+  importBundle: (payload: ExportPayload) => ImportSummary;
 }
 
 const VocabularyContext = createContext<VocabularyContextValue | undefined>(
@@ -130,6 +149,36 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
       getSet,
       getSetName: (id) => getSet(id)?.name ?? "Unknown",
       wordsInSet: (id) => state.words.filter((w) => w.setId === id),
+      exportBundle: () => buildExport(state.sets, state.words),
+      exportSet: (id) => {
+        const set = state.sets.find((s) => s.id === id);
+        return set ? buildExportForSet(set, state.words) : null;
+      },
+      importBundle: (payload) => {
+        const now = Date.now();
+        const newSets: WordSet[] = [];
+        const newWords: Word[] = [];
+        payload.sets.forEach((s, sIndex) => {
+          const set: WordSet = {
+            id: createId(),
+            name: s.name.trim(),
+            createdAt: now + sIndex,
+          };
+          newSets.push(set);
+          s.words.forEach((w, wIndex) => {
+            newWords.push({
+              id: createId(),
+              word: w.word.trim(),
+              translation: w.translation.trim(),
+              explanation: w.explanation?.trim() || undefined,
+              setId: set.id,
+              createdAt: now + sIndex * 1000 + wIndex,
+            });
+          });
+        });
+        dispatch({ type: "IMPORT_BUNDLE", sets: newSets, words: newWords });
+        return { setCount: newSets.length, wordCount: newWords.length };
+      },
     };
   }, [state]);
 

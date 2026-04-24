@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CaretRight,
+  DownloadSimple,
+  Export,
   FolderSimple,
   PencilSimple,
   Plus,
@@ -12,14 +14,18 @@ import EmptyState from "../shared/ui/EmptyState";
 import { useVocabulary } from "../features/vocabulary/VocabularyContext";
 import NewSetSheet from "../features/vocabulary/components/NewSetSheet";
 import RenameSetSheet from "../features/vocabulary/components/RenameSetSheet";
+import ImportExportSheet from "../features/vocabulary/components/ImportExportSheet";
+import { downloadJsonExport } from "../features/vocabulary/download";
+import { slugify } from "../features/vocabulary/serialize";
 import { btnPrimary, iconBtn } from "../shared/ui/fields";
 import { routes } from "../app/routes";
 import type { WordSet } from "../features/vocabulary/types";
 
 export default function SetsPage() {
-  const { sets, words, deleteSet } = useVocabulary();
+  const { sets, words, deleteSet, exportSet } = useVocabulary();
   const [newOpen, setNewOpen] = useState(false);
   const [renaming, setRenaming] = useState<WordSet | null>(null);
+  const [ioOpen, setIoOpen] = useState(false);
 
   const counts = useMemo(() => {
     const out: Record<string, number> = {};
@@ -28,6 +34,12 @@ export default function SetsPage() {
   }, [words]);
 
   const sorted = sets.slice().sort((a, b) => a.createdAt - b.createdAt);
+
+  function handleExportSet(set: WordSet) {
+    const payload = exportSet(set.id);
+    if (!payload) return;
+    downloadJsonExport(payload, `vocabulary-${slugify(set.name)}`);
+  }
 
   function handleDelete(set: WordSet) {
     if (sets.length <= 1) {
@@ -48,14 +60,24 @@ export default function SetsPage() {
         title="Sets"
         subtitle={`${sets.length} set${sets.length === 1 ? "" : "s"}`}
         right={
-          <button
-            type="button"
-            onClick={() => setNewOpen(true)}
-            aria-label="New set"
-            className={iconBtn}
-          >
-            <Plus size={20} weight="bold" />
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setIoOpen(true)}
+              aria-label="Import or export sets"
+              className={iconBtn}
+            >
+              <Export size={20} weight="bold" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setNewOpen(true)}
+              aria-label="New set"
+              className={iconBtn}
+            >
+              <Plus size={20} weight="bold" />
+            </button>
+          </>
         }
       />
       <main className="px-4 pt-4">
@@ -112,6 +134,14 @@ export default function SetsPage() {
                     <div className="flex items-center gap-0.5 pr-2">
                       <button
                         type="button"
+                        aria-label={`Export ${s.name}`}
+                        onClick={() => handleExportSet(s)}
+                        className="press h-9 w-9 grid place-items-center rounded-lg text-ink-muted hover:bg-paper-deep focus-ring"
+                      >
+                        <DownloadSimple size={16} weight="regular" />
+                      </button>
+                      <button
+                        type="button"
                         aria-label={`Rename ${s.name}`}
                         onClick={() => setRenaming(s)}
                         className="press h-9 w-9 grid place-items-center rounded-lg text-ink-muted hover:bg-paper-deep focus-ring"
@@ -137,6 +167,7 @@ export default function SetsPage() {
       </main>
       <NewSetSheet open={newOpen} onClose={() => setNewOpen(false)} />
       <RenameSetSheet set={renaming} onClose={() => setRenaming(null)} />
+      <ImportExportSheet open={ioOpen} onClose={() => setIoOpen(false)} />
     </>
   );
 }
