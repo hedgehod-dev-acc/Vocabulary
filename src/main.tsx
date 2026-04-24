@@ -7,7 +7,7 @@ import { VocabularyProvider } from "./features/vocabulary/VocabularyContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <VocabularyProvider>
         <App />
       </VocabularyProvider>
