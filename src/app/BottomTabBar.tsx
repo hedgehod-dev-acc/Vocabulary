@@ -6,6 +6,7 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import { routes } from "./routes";
+import { uiPrefs } from "../features/ui/uiPrefs";
 
 interface Tab {
   to: string;
@@ -59,13 +60,23 @@ export default function BottomTabBar() {
               transform: `translateX(calc(${activeIndex} * 100%))`,
             }}
           />
-          {TABS.map(({ to, label, Icon }, i) => {
+          {TABS.map(({ to, label, Icon, match }, i) => {
             const isActive = i === activeIndex;
+            const handleClick = () => {
+              if (to === routes.sets && !match(pathname)) {
+                const stored = uiPrefs.getSetsPath();
+                if (stored && stored.startsWith("/sets")) {
+                  navigate(stored);
+                  return;
+                }
+              }
+              navigate(to);
+            };
             return (
               <button
                 key={to}
                 type="button"
-                onClick={() => navigate(to)}
+                onClick={handleClick}
                 aria-current={isActive ? "page" : undefined}
                 className="relative z-10 flex-1 h-12 flex items-center justify-center gap-1.5 rounded-xl press focus-ring"
               >

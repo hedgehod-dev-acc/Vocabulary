@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Check, Plus } from "@phosphor-icons/react";
 import { useVocabulary } from "../VocabularyContext";
+import { uiPrefs } from "../../ui/uiPrefs";
 import {
   btnPrimary,
   fieldInput,
@@ -18,9 +19,12 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
   const [word, setWord] = useState("");
   const [translation, setTranslation] = useState("");
   const [explanation, setExplanation] = useState("");
-  const [setId, setSetId] = useState<string>(
-    () => defaultSetId ?? sets[0]?.id ?? ""
-  );
+  const [setId, setSetId] = useState<string>(() => {
+    if (defaultSetId) return defaultSetId;
+    const stored = uiPrefs.getAddSetId();
+    if (stored && sets.some((s) => s.id === stored)) return stored;
+    return sets[0]?.id ?? "";
+  });
   const [justAdded, setJustAdded] = useState(false);
   const wordInputRef = useRef<HTMLInputElement>(null);
   const successTimerRef = useRef<number | null>(null);
@@ -32,6 +36,10 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
   useEffect(() => {
     if (!sets.some((s) => s.id === setId) && sets[0]) setSetId(sets[0].id);
   }, [sets, setId]);
+
+  useEffect(() => {
+    if (setId) uiPrefs.setAddSetId(setId);
+  }, [setId]);
 
   useEffect(
     () => () => {

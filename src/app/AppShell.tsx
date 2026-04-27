@@ -1,8 +1,17 @@
+import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import BottomTabBar from "./BottomTabBar";
+import { uiPrefs } from "../features/ui/uiPrefs";
 
 export default function AppShell() {
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (pathname.startsWith("/sets")) {
+      uiPrefs.setSetsPath(pathname);
+    }
+  }, [pathname]);
+
   return (
     <div className="min-h-dvh flex flex-col relative">
       <div className="ambient-bg" aria-hidden="true" />

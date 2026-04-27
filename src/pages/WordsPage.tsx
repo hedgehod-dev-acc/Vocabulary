@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BookOpen } from "@phosphor-icons/react";
 import ScreenHeader from "../shared/ui/ScreenHeader";
 import SearchInput from "../shared/ui/SearchInput";
 import EmptyState from "../shared/ui/EmptyState";
 import { useVocabulary } from "../features/vocabulary/VocabularyContext";
 import { useFilteredWords } from "../features/vocabulary/useFilteredWords";
+import { uiPrefs } from "../features/ui/uiPrefs";
 import WordList from "../features/vocabulary/components/WordList";
 import SetFilterChips, {
   ALL_FILTER,
@@ -14,7 +15,22 @@ import SetFilterChips, {
 export default function WordsPage() {
   const { words, sets } = useVocabulary();
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<SetChipValue>(ALL_FILTER);
+  const [filter, setFilter] = useState<SetChipValue>(() => {
+    const stored = uiPrefs.getWordsFilter();
+    if (!stored) return ALL_FILTER;
+    if (stored === ALL_FILTER) return ALL_FILTER;
+    return stored;
+  });
+
+  useEffect(() => {
+    uiPrefs.setWordsFilter(filter);
+  }, [filter]);
+
+  useEffect(() => {
+    if (filter !== ALL_FILTER && !sets.some((s) => s.id === filter)) {
+      setFilter(ALL_FILTER);
+    }
+  }, [sets, filter]);
 
   const counts = useMemo(() => {
     const out: Record<string, number> = {};
