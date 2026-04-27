@@ -10,9 +10,11 @@ import ScreenHeader from "../shared/ui/ScreenHeader";
 import SearchInput from "../shared/ui/SearchInput";
 import EmptyState from "../shared/ui/EmptyState";
 import WordList from "../features/vocabulary/components/WordList";
+import CompactToggle from "../features/vocabulary/components/CompactToggle";
 import RenameSetSheet from "../features/vocabulary/components/RenameSetSheet";
 import { useVocabulary } from "../features/vocabulary/VocabularyContext";
 import { useFilteredWords } from "../features/vocabulary/useFilteredWords";
+import { useCompactWords } from "../features/ui/useCompactWords";
 import { downloadJsonExport } from "../features/vocabulary/download";
 import { slugify } from "../features/vocabulary/serialize";
 import { routes } from "../app/routes";
@@ -25,6 +27,7 @@ export default function SetDetailPage() {
     useVocabulary();
   const [query, setQuery] = useState("");
   const [renaming, setRenaming] = useState<WordSet | null>(null);
+  const [compact, setCompact] = useCompactWords();
 
   const set = getSet(setId);
 
@@ -68,6 +71,9 @@ export default function SetDetailPage() {
         back={routes.sets}
         right={
           <>
+            {setWords.length > 0 && (
+              <CompactToggle compact={compact} onToggle={setCompact} />
+            )}
             <button
               type="button"
               aria-label="Export set"
@@ -123,7 +129,7 @@ export default function SetDetailPage() {
             description="Try a different search term."
           />
         ) : (
-          <WordList words={filtered} />
+          <WordList words={filtered} compact={compact} />
         )}
       </main>
       <RenameSetSheet set={renaming} onClose={() => setRenaming(null)} />

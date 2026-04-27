@@ -7,14 +7,59 @@ interface Props {
   setName?: string;
   onClick: () => void;
   index?: number;
+  compact?: boolean;
 }
 
-export default function WordCard({ word, setName, onClick, index = 0 }: Props) {
+export default function WordCard({
+  word,
+  setName,
+  onClick,
+  index = 0,
+  compact = false,
+}: Props) {
   function handleMove(e: MouseEvent<HTMLButtonElement>) {
     const target = e.currentTarget;
     const rect = target.getBoundingClientRect();
     target.style.setProperty("--mx", `${e.clientX - rect.left}px`);
     target.style.setProperty("--my", `${e.clientY - rect.top}px`);
+  }
+
+  if (compact) {
+    return (
+      <li
+        className="animate-list-in"
+        style={{ animationDelay: `${Math.min(index, 12) * 25}ms` }}
+      >
+        <button
+          type="button"
+          onClick={onClick}
+          className="press group w-full text-left bg-surface rounded-xl px-3.5 py-2 ring-1 ring-hairline hover:ring-hairline-strong focus-ring"
+        >
+          <div className="flex items-center gap-2.5">
+            <p
+              className="flex-1 min-w-0 font-display text-[15px] font-semibold text-ink truncate"
+              style={{ letterSpacing: "-0.01em" }}
+            >
+              {word.word}
+            </p>
+            <span
+              aria-hidden="true"
+              className="text-ink-faint text-[11px] shrink-0"
+            >
+              ·
+            </span>
+            <p className="flex-1 min-w-0 text-[13.5px] text-ink-soft truncate text-right">
+              {word.translation}
+            </p>
+            {setName && (
+              <span className="shrink-0 text-[10px] uppercase tracking-[0.1em] font-semibold px-1.5 py-0.5 rounded bg-accent-tint text-accent-deep">
+                {setName}
+              </span>
+            )}
+          </div>
+        </button>
+      </li>
+    );
   }
 
   return (

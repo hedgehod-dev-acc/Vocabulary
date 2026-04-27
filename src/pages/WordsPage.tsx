@@ -6,7 +6,9 @@ import EmptyState from "../shared/ui/EmptyState";
 import { useVocabulary } from "../features/vocabulary/VocabularyContext";
 import { useFilteredWords } from "../features/vocabulary/useFilteredWords";
 import { uiPrefs } from "../features/ui/uiPrefs";
+import { useCompactWords } from "../features/ui/useCompactWords";
 import WordList from "../features/vocabulary/components/WordList";
+import CompactToggle from "../features/vocabulary/components/CompactToggle";
 import SetFilterChips, {
   ALL_FILTER,
   type SetChipValue,
@@ -15,6 +17,7 @@ import SetFilterChips, {
 export default function WordsPage() {
   const { words, sets } = useVocabulary();
   const [query, setQuery] = useState("");
+  const [compact, setCompact] = useCompactWords();
   const [filter, setFilter] = useState<SetChipValue>(() => {
     const stored = uiPrefs.getWordsFilter();
     if (!stored) return ALL_FILTER;
@@ -51,6 +54,11 @@ export default function WordsPage() {
       <ScreenHeader
         title="Words"
         subtitle={`${words.length} ${words.length === 1 ? "entry" : "entries"} in your library`}
+        right={
+          hasAny ? (
+            <CompactToggle compact={compact} onToggle={setCompact} />
+          ) : undefined
+        }
       />
       <main className="px-4 pt-4 space-y-3.5">
         {hasAny && <SearchInput value={query} onChange={setQuery} placeholder="Search in either language" />}
@@ -80,7 +88,11 @@ export default function WordsPage() {
             }
           />
         ) : (
-          <WordList words={filtered} showSetChip={filter === ALL_FILTER} />
+          <WordList
+            words={filtered}
+            showSetChip={filter === ALL_FILTER}
+            compact={compact}
+          />
         )}
       </main>
     </>

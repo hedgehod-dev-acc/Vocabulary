@@ -4,6 +4,7 @@ const KEYS = {
   addSetId: PREFIX + "addSetId",
   wordsFilter: PREFIX + "wordsFilter",
   setsPath: PREFIX + "setsPath",
+  compactWords: PREFIX + "compactWords",
 } as const;
 
 function read(key: string): string | null {
@@ -33,4 +34,7 @@ export const uiPrefs = {
 
   getSetsPath: () => read(KEYS.setsPath),
   setSetsPath: (p: string) => write(KEYS.setsPath, p),
+
+  getCompactWords: () => read(KEYS.compactWords) === "1",
+  setCompactWords: (v: boolean) => write(KEYS.compactWords, v ? "1" : "0"),
 };
