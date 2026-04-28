@@ -19,16 +19,28 @@ export default function SetFilterChips({
   totalCount,
 }: Props) {
   const sorted = sets.slice().sort((a, b) => a.createdAt - b.createdAt);
+  const selectedSet =
+    value !== ALL_FILTER ? sorted.find((s) => s.id === value) : undefined;
+  const rest = selectedSet ? sorted.filter((s) => s.id !== value) : sorted;
   return (
     <div className="-mx-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="flex gap-2 px-4 py-1 w-max">
+        {selectedSet && (
+          <Chip
+            key={selectedSet.id}
+            label={selectedSet.name}
+            count={counts[selectedSet.id] ?? 0}
+            active
+            onClick={() => onChange(selectedSet.id)}
+          />
+        )}
         <Chip
           label="All"
           count={totalCount}
           active={value === ALL_FILTER}
           onClick={() => onChange(ALL_FILTER)}
         />
-        {sorted.map((s) => (
+        {rest.map((s) => (
           <Chip
             key={s.id}
             label={s.name}
