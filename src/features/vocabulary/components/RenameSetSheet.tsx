@@ -35,7 +35,6 @@ export default function RenameSetSheet({ set, onClose }: Props) {
           onChange={(e) => setName(e.target.value)}
           className={fieldInput}
           placeholder="Set name"
-          autoFocus
           maxLength={60}
           required
         />
