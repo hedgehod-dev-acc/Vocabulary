@@ -24,10 +24,43 @@ type Action =
   | { type: "ADD_WORD"; payload: Word }
   | { type: "UPDATE_WORD"; id: string; patch: WordPatch }
   | { type: "DELETE_WORD"; id: string }
+  | { type: "REORDER_WORDS_IN_SET"; setId: string; orderedIds: string[] }
   | { type: "ADD_SET"; payload: WordSet }
   | { type: "RENAME_SET"; id: string; name: string }
   | { type: "DELETE_SET"; id: string }
+  | { type: "REORDER_SETS"; orderedIds: string[] }
   | { type: "IMPORT_BUNDLE"; sets: WordSet[]; words: Word[] };
+
+function reorderById<T extends { id: string }>(
+  list: T[],
+  orderedIds: string[]
+): T[] {
+  const byId = new Map(list.map((item) => [item.id, item]));
+  const next: T[] = [];
+  const seen = new Set<string>();
+  for (const id of orderedIds) {
+    const item = byId.get(id);
+    if (item && !seen.has(id)) {
+      next.push(item);
+      seen.add(id);
+    }
+  }
+  for (const item of list) {
+    if (!seen.has(item.id)) next.push(item);
+  }
+  return next;
+}
+
+function reorderWordsInSet(
+  words: Word[],
+  setId: string,
+  orderedIds: string[]
+): Word[] {
+  const inScope = words.filter((w) => w.setId === setId);
+  const reordered = reorderById(inScope, orderedIds);
+  let i = 0;
+  return words.map((w) => (w.setId === setId ? reordered[i++] : w));
+}
 
 function reducer(state: PersistedState, action: Action): PersistedState {
   switch (action.type) {
@@ -42,6 +75,11 @@ function reducer(state: PersistedState, action: Action): PersistedState {
       };
     case "DELETE_WORD":
       return { ...state, words: state.words.filter((w) => w.id !== action.id) };
+    case "REORDER_WORDS_IN_SET":
+      return {
+        ...state,
+        words: reorderWordsInSet(state.words, action.setId, action.orderedIds),
+      };
     case "ADD_SET":
       return { ...state, sets: [...state.sets, action.payload] };
     case "RENAME_SET":
@@ -53,11 +91,18 @@ function reducer(state: PersistedState, action: Action): PersistedState {
       };
     case "DELETE_SET":
       return {
+        ...state,
         sets: state.sets.filter((s) => s.id !== action.id),
         words: state.words.filter((w) => w.setId !== action.id),
       };
+    case "REORDER_SETS":
+      return {
+        ...state,
+        sets: reorderById(state.sets, action.orderedIds),
+      };
     case "IMPORT_BUNDLE":
       return {
+        ...state,
         sets: [...state.sets, ...action.sets],
         words: [...action.words, ...state.words],
       };
@@ -77,9 +122,11 @@ export interface VocabularyContextValue {
   addWord: (input: WordInput) => Word;
   updateWord: (id: string, patch: WordPatch) => void;
   deleteWord: (id: string) => void;
+  reorderWordsInSet: (setId: string, orderedIds: string[]) => void;
   addSet: (name: string) => WordSet;
   renameSet: (id: string, name: string) => void;
   deleteSet: (id: string) => void;
+  reorderSets: (orderedIds: string[]) => void;
   getSet: (id: string) => WordSet | undefined;
   getSetName: (id: string) => string;
   wordsInSet: (id: string) => Word[];
@@ -134,6 +181,8 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
       updateWord: (id, patch) =>
         dispatch({ type: "UPDATE_WORD", id, patch: trimPatch(patch) }),
       deleteWord: (id) => dispatch({ type: "DELETE_WORD", id }),
+      reorderWordsInSet: (setId, orderedIds) =>
+        dispatch({ type: "REORDER_WORDS_IN_SET", setId, orderedIds }),
       addSet: (name) => {
         const set: WordSet = {
           id: createId(),
@@ -146,6 +195,8 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
       renameSet: (id, name) =>
         dispatch({ type: "RENAME_SET", id, name: name.trim() }),
       deleteSet: (id) => dispatch({ type: "DELETE_SET", id }),
+      reorderSets: (orderedIds) =>
+        dispatch({ type: "REORDER_SETS", orderedIds }),
       getSet,
       getSetName: (id) => getSet(id)?.name ?? "Unknown",
       wordsInSet: (id) => state.words.filter((w) => w.setId === id),

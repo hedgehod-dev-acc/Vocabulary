@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import {
+  ArrowsDownUp,
+  Check,
   DownloadSimple,
   PencilSimple,
   Plus,
@@ -28,13 +30,14 @@ export default function SetDetailPage() {
   const [query, setQuery] = useState("");
   const [renaming, setRenaming] = useState<WordSet | null>(null);
   const [compact, setCompact] = useCompactWords();
+  const [reorderMode, setReorderMode] = useState(false);
 
   const set = getSet(setId);
 
   const setWords = set ? wordsInSet(set.id) : [];
   const filtered = useFilteredWords({
     words,
-    query,
+    query: reorderMode ? "" : query,
     setId: set?.id ?? null,
   });
 
@@ -63,47 +66,74 @@ export default function SetDetailPage() {
     }
   }
 
+  const canReorder = setWords.length > 1;
+
   return (
     <>
       <ScreenHeader
-        title={set.name}
-        subtitle={`${setWords.length} word${setWords.length === 1 ? "" : "s"}`}
+        title={reorderMode ? `Reorder · ${set.name}` : set.name}
+        subtitle={
+          reorderMode
+            ? "Tap arrows to move"
+            : `${setWords.length} word${setWords.length === 1 ? "" : "s"}`
+        }
         back={routes.sets}
         right={
-          <>
-            {setWords.length > 0 && (
-              <CompactToggle compact={compact} onToggle={setCompact} />
-            )}
+          reorderMode ? (
             <button
               type="button"
-              aria-label="Export set"
-              onClick={() => handleExport(set)}
+              onClick={() => setReorderMode(false)}
+              aria-label="Done reordering"
               className={iconBtn}
             >
-              <DownloadSimple size={18} weight="regular" />
+              <Check size={20} weight="bold" />
             </button>
-            <button
-              type="button"
-              aria-label="Rename set"
-              onClick={() => setRenaming(set)}
-              className={iconBtn}
-            >
-              <PencilSimple size={18} weight="regular" />
-            </button>
-            <button
-              type="button"
-              aria-label="Delete set"
-              onClick={() => handleDelete(set)}
-              disabled={sets.length <= 1}
-              className={`${iconBtn} text-danger hover:bg-danger-soft disabled:opacity-30`}
-            >
-              <Trash size={18} weight="regular" />
-            </button>
-          </>
+          ) : (
+            <>
+              {canReorder && (
+                <button
+                  type="button"
+                  aria-label="Reorder words"
+                  onClick={() => setReorderMode(true)}
+                  className={iconBtn}
+                >
+                  <ArrowsDownUp size={18} weight="bold" />
+                </button>
+              )}
+              {setWords.length > 0 && (
+                <CompactToggle compact={compact} onToggle={setCompact} />
+              )}
+              <button
+                type="button"
+                aria-label="Export set"
+                onClick={() => handleExport(set)}
+                className={iconBtn}
+              >
+                <DownloadSimple size={18} weight="regular" />
+              </button>
+              <button
+                type="button"
+                aria-label="Rename set"
+                onClick={() => setRenaming(set)}
+                className={iconBtn}
+              >
+                <PencilSimple size={18} weight="regular" />
+              </button>
+              <button
+                type="button"
+                aria-label="Delete set"
+                onClick={() => handleDelete(set)}
+                disabled={sets.length <= 1}
+                className={`${iconBtn} text-danger hover:bg-danger-soft disabled:opacity-30`}
+              >
+                <Trash size={18} weight="regular" />
+              </button>
+            </>
+          )
         }
       />
       <main className="px-4 pt-4 space-y-3.5">
-        {setWords.length > 0 && (
+        {setWords.length > 0 && !reorderMode && (
           <SearchInput
             value={query}
             onChange={setQuery}
@@ -129,7 +159,12 @@ export default function SetDetailPage() {
             description="Try a different search term."
           />
         ) : (
-          <WordList words={filtered} compact={compact} />
+          <WordList
+            words={filtered}
+            compact={compact}
+            reorderMode={reorderMode}
+            reorderSetId={set.id}
+          />
         )}
       </main>
       <RenameSetSheet set={renaming} onClose={() => setRenaming(null)} />

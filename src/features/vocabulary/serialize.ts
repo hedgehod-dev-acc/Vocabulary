@@ -24,7 +24,6 @@ function serializeSet(set: WordSet, words: Word[]): ExportSet {
     name: set.name,
     words: words
       .filter((w) => w.setId === set.id)
-      .sort((a, b) => a.createdAt - b.createdAt)
       .map((w) => {
         const out: ExportWord = { word: w.word, translation: w.translation };
         if (w.explanation) out.explanation = w.explanation;
@@ -34,11 +33,10 @@ function serializeSet(set: WordSet, words: Word[]): ExportSet {
 }
 
 export function buildExport(sets: WordSet[], words: Word[]): ExportPayload {
-  const sorted = sets.slice().sort((a, b) => a.createdAt - b.createdAt);
   return {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
-    sets: sorted.map((s) => serializeSet(s, words)),
+    sets: sets.map((s) => serializeSet(s, words)),
   };
 }
 

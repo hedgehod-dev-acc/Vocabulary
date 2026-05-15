@@ -1,6 +1,19 @@
-import { ArrowRight } from "@phosphor-icons/react";
-import type { MouseEvent } from "react";
+import {
+  ArrowLineDown,
+  ArrowLineUp,
+  ArrowRight,
+  DotsSixVertical,
+} from "@phosphor-icons/react";
+import type { CSSProperties, MouseEvent, PointerEvent, Ref } from "react";
 import type { Word } from "../types";
+
+interface HandleProps {
+  onPointerDown: (e: PointerEvent<HTMLElement>) => void;
+  onPointerMove: (e: PointerEvent<HTMLElement>) => void;
+  onPointerUp: (e: PointerEvent<HTMLElement>) => void;
+  onPointerCancel: (e: PointerEvent<HTMLElement>) => void;
+  style: CSSProperties;
+}
 
 interface Props {
   word: Word;
@@ -8,6 +21,15 @@ interface Props {
   onClick: () => void;
   index?: number;
   compact?: boolean;
+  reorderMode?: boolean;
+  isFirst?: boolean;
+  isLast?: boolean;
+  onMoveToTop?: () => void;
+  onMoveToBottom?: () => void;
+  rowRef?: Ref<HTMLLIElement>;
+  rowStyle?: CSSProperties;
+  handleProps?: HandleProps;
+  isDragging?: boolean;
 }
 
 export default function WordCard({
@@ -16,12 +38,85 @@ export default function WordCard({
   onClick,
   index = 0,
   compact = false,
+  reorderMode = false,
+  isFirst = false,
+  isLast = false,
+  onMoveToTop,
+  onMoveToBottom,
+  rowRef,
+  rowStyle,
+  handleProps,
+  isDragging = false,
 }: Props) {
   function handleMove(e: MouseEvent<HTMLButtonElement>) {
     const target = e.currentTarget;
     const rect = target.getBoundingClientRect();
     target.style.setProperty("--mx", `${e.clientX - rect.left}px`);
     target.style.setProperty("--my", `${e.clientY - rect.top}px`);
+  }
+
+  if (reorderMode) {
+    return (
+      <li ref={rowRef} style={rowStyle}>
+        <div
+          className={`flex items-center gap-1 bg-surface ring-1 ${
+            isDragging
+              ? "ring-accent shadow-[var(--shadow-lift)]"
+              : "ring-hairline"
+          } ${
+            compact ? "rounded-xl pr-2 py-1" : "rounded-2xl pr-2 py-2 shadow-[var(--shadow-card)]"
+          }`}
+        >
+          <button
+            type="button"
+            aria-label={`Drag ${word.word}`}
+            {...(handleProps ?? {})}
+            className={`grid place-items-center text-ink-faint hover:text-ink-soft cursor-grab active:cursor-grabbing focus-ring rounded-l-2xl ${
+              compact ? "h-9 w-8" : "h-11 w-9"
+            }`}
+          >
+            <DotsSixVertical size={compact ? 18 : 20} weight="bold" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <p
+              className={`font-display font-semibold text-ink truncate ${
+                compact ? "text-[15px]" : "text-[18px]"
+              }`}
+              style={{ letterSpacing: "-0.01em" }}
+            >
+              {word.word}
+            </p>
+            <p
+              className={`text-ink-soft truncate ${
+                compact ? "text-[13px]" : "text-[14px]"
+              }`}
+            >
+              {word.translation}
+            </p>
+          </div>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <button
+              type="button"
+              aria-label={`Move ${word.word} to top`}
+              onClick={onMoveToTop}
+              disabled={isFirst}
+              className="press h-9 w-9 grid place-items-center rounded-lg text-ink-soft hover:bg-paper-deep disabled:opacity-30 disabled:hover:bg-transparent focus-ring"
+            >
+              <ArrowLineUp size={16} weight="bold" />
+            </button>
+            <button
+              type="button"
+              aria-label={`Move ${word.word} to bottom`}
+              onClick={onMoveToBottom}
+              disabled={isLast}
+              className="press h-9 w-9 grid place-items-center rounded-lg text-ink-soft hover:bg-paper-deep disabled:opacity-30 disabled:hover:bg-transparent focus-ring"
+            >
+              <ArrowLineDown size={16} weight="bold" />
+            </button>
+          </div>
+        </div>
+      </li>
+    );
   }
 
   if (compact) {
