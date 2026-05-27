@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import type { Word } from "./types";
+import { isFavoritesSetId } from "./storage";
 
 interface Options {
   words: Word[];
@@ -10,7 +11,11 @@ interface Options {
 export function useFilteredWords({ words, query = "", setId = null }: Options): Word[] {
   return useMemo(() => {
     const q = query.trim().toLowerCase();
-    const scoped = setId ? words.filter((w) => w.setId === setId) : words;
+    const scoped = setId
+      ? isFavoritesSetId(setId)
+        ? words.filter((w) => w.isFavorite)
+        : words.filter((w) => w.setId === setId)
+      : words;
     if (!q) return scoped;
     return scoped.filter(
       (w) =>

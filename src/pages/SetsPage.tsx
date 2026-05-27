@@ -12,11 +12,16 @@ import {
   FolderSimple,
   PencilSimple,
   Plus,
+  Star,
   Trash,
 } from "@phosphor-icons/react";
 import ScreenHeader from "../shared/ui/ScreenHeader";
 import EmptyState from "../shared/ui/EmptyState";
 import { useVocabulary } from "../features/vocabulary/VocabularyContext";
+import {
+  FAVORITES_SET_ID,
+  isFavoritesSetId,
+} from "../features/vocabulary/storage";
 import NewSetSheet from "../features/vocabulary/components/NewSetSheet";
 import RenameSetSheet from "../features/vocabulary/components/RenameSetSheet";
 import ImportExportSheet from "../features/vocabulary/components/ImportExportSheet";
@@ -48,7 +53,12 @@ export default function SetsPage() {
 
   const counts = useMemo(() => {
     const out: Record<string, number> = {};
-    for (const w of words) out[w.setId] = (out[w.setId] ?? 0) + 1;
+    let favorites = 0;
+    for (const w of words) {
+      out[w.setId] = (out[w.setId] ?? 0) + 1;
+      if (w.isFavorite) favorites += 1;
+    }
+    out[FAVORITES_SET_ID] = favorites;
     return out;
   }, [words]);
 
@@ -58,8 +68,14 @@ export default function SetsPage() {
     downloadJsonExport(payload, `vocabulary-${slugify(set.name)}`);
   }
 
+  const realSetsCount = useMemo(
+    () => sets.filter((s) => !isFavoritesSetId(s.id)).length,
+    [sets]
+  );
+
   function handleDelete(set: WordSet) {
-    if (sets.length <= 1) {
+    if (isFavoritesSetId(set.id)) return;
+    if (realSetsCount <= 1) {
       alert("You need at least one set.");
       return;
     }
@@ -147,6 +163,7 @@ export default function SetsPage() {
               const isFirst = i === 0;
               const isLast = i === sets.length - 1;
               const isDragging = reorder.draggingId === s.id;
+              const isFavorites = isFavoritesSetId(s.id);
               return (
                 <li
                   key={s.id}
@@ -177,7 +194,11 @@ export default function SetsPage() {
                         </button>
                         <div className="flex-1 min-w-0 flex items-center gap-3 pr-1 py-3">
                           <div className="relative h-10 w-10 grid place-items-center rounded-xl bg-accent-tint text-accent-deep shrink-0">
-                            <FolderSimple size={20} weight="fill" />
+                            {isFavorites ? (
+                              <Star size={20} weight="fill" />
+                            ) : (
+                              <FolderSimple size={20} weight="fill" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p
@@ -240,7 +261,7 @@ export default function SetsPage() {
                             <ArrowLineDown size={16} weight="bold" />
                           </button>
                         </>
-                      ) : (
+                      ) : isFavorites ? null : (
                         <>
                           <button
                             type="button"
@@ -262,7 +283,7 @@ export default function SetsPage() {
                             type="button"
                             aria-label={`Delete ${s.name}`}
                             onClick={() => handleDelete(s)}
-                            disabled={sets.length <= 1}
+                            disabled={realSetsCount <= 1}
                             className="press h-9 w-9 grid place-items-center rounded-lg text-danger hover:bg-danger-soft disabled:opacity-30 disabled:hover:bg-transparent focus-ring"
                           >
                             <Trash size={16} weight="regular" />

@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Check, Plus } from "@phosphor-icons/react";
 import { useVocabulary } from "../VocabularyContext";
+import { isFavoritesSetId } from "../storage";
 import { uiPrefs } from "../../ui/uiPrefs";
 import {
   btnPrimary,
@@ -15,12 +16,16 @@ interface Props {
 }
 
 export default function AddWordForm({ defaultSetId, onAdded }: Props) {
-  const { sets, addWord } = useVocabulary();
+  const { sets: allSets, addWord } = useVocabulary();
+  const sets = useMemo(
+    () => allSets.filter((s) => !isFavoritesSetId(s.id)),
+    [allSets]
+  );
   const [word, setWord] = useState("");
   const [translation, setTranslation] = useState("");
   const [explanation, setExplanation] = useState("");
   const [setId, setSetId] = useState<string>(() => {
-    if (defaultSetId) return defaultSetId;
+    if (defaultSetId && !isFavoritesSetId(defaultSetId)) return defaultSetId;
     const stored = uiPrefs.getAddSetId();
     if (stored && sets.some((s) => s.id === stored)) return stored;
     return sets[0]?.id ?? "";
@@ -30,7 +35,7 @@ export default function AddWordForm({ defaultSetId, onAdded }: Props) {
   const successTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (defaultSetId) setSetId(defaultSetId);
+    if (defaultSetId && !isFavoritesSetId(defaultSetId)) setSetId(defaultSetId);
   }, [defaultSetId]);
 
   useEffect(() => {

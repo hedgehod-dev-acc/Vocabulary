@@ -11,6 +11,7 @@ export interface Word {
   explanation?: string;
   setId: string;
   createdAt: number;
+  isFavorite?: boolean;
 }
 
 export type WordInput = Pick<Word, "word" | "translation" | "setId"> & {

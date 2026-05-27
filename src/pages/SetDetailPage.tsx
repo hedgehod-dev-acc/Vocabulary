@@ -15,6 +15,7 @@ import WordList from "../features/vocabulary/components/WordList";
 import CompactToggle from "../features/vocabulary/components/CompactToggle";
 import RenameSetSheet from "../features/vocabulary/components/RenameSetSheet";
 import { useVocabulary } from "../features/vocabulary/VocabularyContext";
+import { isFavoritesSetId } from "../features/vocabulary/storage";
 import { useFilteredWords } from "../features/vocabulary/useFilteredWords";
 import { useCompactWords } from "../features/ui/useCompactWords";
 import { downloadJsonExport } from "../features/vocabulary/download";
@@ -33,6 +34,7 @@ export default function SetDetailPage() {
   const [reorderMode, setReorderMode] = useState(false);
 
   const set = getSet(setId);
+  const isFavorites = set ? isFavoritesSetId(set.id) : false;
 
   const setWords = set ? wordsInSet(set.id) : [];
   const filtered = useFilteredWords({
@@ -66,7 +68,7 @@ export default function SetDetailPage() {
     }
   }
 
-  const canReorder = setWords.length > 1;
+  const canReorder = !isFavorites && setWords.length > 1;
 
   return (
     <>
@@ -103,31 +105,35 @@ export default function SetDetailPage() {
               {setWords.length > 0 && (
                 <CompactToggle compact={compact} onToggle={setCompact} />
               )}
-              <button
-                type="button"
-                aria-label="Export set"
-                onClick={() => handleExport(set)}
-                className={iconBtn}
-              >
-                <DownloadSimple size={18} weight="regular" />
-              </button>
-              <button
-                type="button"
-                aria-label="Rename set"
-                onClick={() => setRenaming(set)}
-                className={iconBtn}
-              >
-                <PencilSimple size={18} weight="regular" />
-              </button>
-              <button
-                type="button"
-                aria-label="Delete set"
-                onClick={() => handleDelete(set)}
-                disabled={sets.length <= 1}
-                className={`${iconBtn} text-danger hover:bg-danger-soft disabled:opacity-30`}
-              >
-                <Trash size={18} weight="regular" />
-              </button>
+              {!isFavorites && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Export set"
+                    onClick={() => handleExport(set)}
+                    className={iconBtn}
+                  >
+                    <DownloadSimple size={18} weight="regular" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Rename set"
+                    onClick={() => setRenaming(set)}
+                    className={iconBtn}
+                  >
+                    <PencilSimple size={18} weight="regular" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Delete set"
+                    onClick={() => handleDelete(set)}
+                    disabled={sets.length <= 1}
+                    className={`${iconBtn} text-danger hover:bg-danger-soft disabled:opacity-30`}
+                  >
+                    <Trash size={18} weight="regular" />
+                  </button>
+                </>
+              )}
             </>
           )
         }
@@ -141,18 +147,25 @@ export default function SetDetailPage() {
           />
         )}
         {setWords.length === 0 ? (
-          <EmptyState
-            title="No words in this set"
-            description="Add words to this set from the Add tab."
-            action={
-              <Link
-                to={`${routes.add}?set=${set.id}`}
-                className={btnPrimary}
-              >
-                <Plus size={16} weight="bold" /> Add a word
-              </Link>
-            }
-          />
+          isFavorites ? (
+            <EmptyState
+              title="No favorites yet"
+              description="Open a word and toggle Favorite to add it here."
+            />
+          ) : (
+            <EmptyState
+              title="No words in this set"
+              description="Add words to this set from the Add tab."
+              action={
+                <Link
+                  to={`${routes.add}?set=${set.id}`}
+                  className={btnPrimary}
+                >
+                  <Plus size={16} weight="bold" /> Add a word
+                </Link>
+              }
+            />
+          )
         ) : filtered.length === 0 ? (
           <EmptyState
             title="No matches"

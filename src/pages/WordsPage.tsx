@@ -3,6 +3,7 @@ import { ArrowLeft, BookOpen, MagnifyingGlass, X } from "@phosphor-icons/react";
 import ScreenHeader from "../shared/ui/ScreenHeader";
 import EmptyState from "../shared/ui/EmptyState";
 import { useVocabulary } from "../features/vocabulary/VocabularyContext";
+import { FAVORITES_SET_ID } from "../features/vocabulary/storage";
 import { useFilteredWords } from "../features/vocabulary/useFilteredWords";
 import { uiPrefs } from "../features/ui/uiPrefs";
 import { useCompactWords } from "../features/ui/useCompactWords";
@@ -45,7 +46,12 @@ export default function WordsPage() {
 
   const counts = useMemo(() => {
     const out: Record<string, number> = {};
-    for (const w of words) out[w.setId] = (out[w.setId] ?? 0) + 1;
+    let favorites = 0;
+    for (const w of words) {
+      out[w.setId] = (out[w.setId] ?? 0) + 1;
+      if (w.isFavorite) favorites += 1;
+    }
+    out[FAVORITES_SET_ID] = favorites;
     return out;
   }, [words]);
 

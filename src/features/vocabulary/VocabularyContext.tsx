@@ -9,6 +9,7 @@ import {
 import type { Word, WordInput, WordPatch, WordSet } from "./types";
 import {
   createDefaultState,
+  isFavoritesSetId,
   loadState,
   saveState,
   type PersistedState,
@@ -122,6 +123,7 @@ export interface VocabularyContextValue {
   addWord: (input: WordInput) => Word;
   updateWord: (id: string, patch: WordPatch) => void;
   deleteWord: (id: string) => void;
+  toggleFavorite: (id: string) => void;
   reorderWordsInSet: (setId: string, orderedIds: string[]) => void;
   addSet: (name: string) => WordSet;
   renameSet: (id: string, name: string) => void;
@@ -154,7 +156,17 @@ function trimPatch(patch: WordPatch): WordPatch {
 export function VocabularyProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, () => {
     const loaded = loadState();
-    return loaded.sets.length === 0 ? createDefaultState() : loaded;
+    if (loaded.sets.length === 0) return createDefaultState();
+    const hasRealSet = loaded.sets.some((s) => !isFavoritesSetId(s.id));
+    if (!hasRealSet) {
+      const general: WordSet = {
+        id: createId(),
+        name: "General",
+        createdAt: Date.now(),
+      };
+      return { ...loaded, sets: [...loaded.sets, general] };
+    }
+    return loaded;
   });
 
   useEffect(() => {
@@ -167,6 +179,9 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
       sets: state.sets,
       words: state.words,
       addWord: (input) => {
+        if (isFavoritesSetId(input.setId)) {
+          throw new Error("Cannot add a word directly to the Favorites set.");
+        }
         const word: Word = {
           id: createId(),
           word: input.word.trim(),
@@ -178,9 +193,21 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "ADD_WORD", payload: word });
         return word;
       },
-      updateWord: (id, patch) =>
-        dispatch({ type: "UPDATE_WORD", id, patch: trimPatch(patch) }),
+      updateWord: (id, patch) => {
+        const safe: WordPatch = { ...patch };
+        if (safe.setId && isFavoritesSetId(safe.setId)) delete safe.setId;
+        dispatch({ type: "UPDATE_WORD", id, patch: trimPatch(safe) });
+      },
       deleteWord: (id) => dispatch({ type: "DELETE_WORD", id }),
+      toggleFavorite: (id) => {
+        const word = state.words.find((w) => w.id === id);
+        if (!word) return;
+        dispatch({
+          type: "UPDATE_WORD",
+          id,
+          patch: { isFavorite: !word.isFavorite },
+        });
+      },
       reorderWordsInSet: (setId, orderedIds) =>
         dispatch({ type: "REORDER_WORDS_IN_SET", setId, orderedIds }),
       addSet: (name) => {
@@ -192,16 +219,29 @@ export function VocabularyProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "ADD_SET", payload: set });
         return set;
       },
-      renameSet: (id, name) =>
-        dispatch({ type: "RENAME_SET", id, name: name.trim() }),
-      deleteSet: (id) => dispatch({ type: "DELETE_SET", id }),
+      renameSet: (id, name) => {
+        if (isFavoritesSetId(id)) return;
+        dispatch({ type: "RENAME_SET", id, name: name.trim() });
+      },
+      deleteSet: (id) => {
+        if (isFavoritesSetId(id)) return;
+        dispatch({ type: "DELETE_SET", id });
+      },
       reorderSets: (orderedIds) =>
         dispatch({ type: "REORDER_SETS", orderedIds }),
       getSet,
       getSetName: (id) => getSet(id)?.name ?? "Unknown",
-      wordsInSet: (id) => state.words.filter((w) => w.setId === id),
-      exportBundle: () => buildExport(state.sets, state.words),
+      wordsInSet: (id) =>
+        isFavoritesSetId(id)
+          ? state.words.filter((w) => w.isFavorite)
+          : state.words.filter((w) => w.setId === id),
+      exportBundle: () =>
+        buildExport(
+          state.sets.filter((s) => !isFavoritesSetId(s.id)),
+          state.words
+        ),
       exportSet: (id) => {
+        if (isFavoritesSetId(id)) return null;
         const set = state.sets.find((s) => s.id === id);
         return set ? buildExportForSet(set, state.words) : null;
       },
